@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+    <style>
+        video { width: 100%; max-width: 400px; }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <h2>Scan QR + GPS</h2>
+    <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
+    <p id="result"></p>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => {
+            video.srcObject = stream;
+        });
+
+        function scanLoop() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    fetch('/submit_scan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            qr_token: code.data,
+                            student_id: 1,
+                            location: `${pos.coords.latitude},${pos.coords.longitude}`
+                        })
+                    }).then(res => res.json()).then(data => {
+                        document.getElementById('result').textContent = JSON.stringify(data);
+                    });
+                });
+            } else {
+                requestAnimationFrame(scanLoop);
+            }
+        }
+
+        video.addEventListener('loadeddata', scanLoop);
+    </script>
+</body>
+</html>

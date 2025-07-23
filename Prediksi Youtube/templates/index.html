@@ -1,0 +1,372 @@
+
+# HTML Template
+html_template = """
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Channel Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .slider-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.3);
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .slider:hover {
+            opacity: 1;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+        <!-- Header -->
+        <header class="gradient-bg text-white py-6">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl font-bold text-center">🎬 YouTube Channel Predictor</h1>
+                <p class="text-center mt-2 text-blue-100">Prediksi pertumbuhan channel dengan AI-powered analysis</p>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Input Panel -->
+                <div class="lg:col-span-1">
+                    <div class="slider-container">
+                        <h2 class="text-2xl font-bold mb-4">📊 Parameter Channel</h2>
+                        <div id="sliders-container" class="space-y-4">
+                            <!-- Sliders will be populated by JavaScript -->
+                        </div>
+                        <button id="predict-btn" class="w-full bg-white text-purple-600 font-bold py-3 px-6 rounded-lg mt-6 hover:bg-gray-100 transition duration-300">
+                            🔮 Prediksi Sekarang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="lg:col-span-2">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="stat-card">
+                            <div class="text-3xl font-bold" id="final-subscribers">-</div>
+                            <div class="text-sm opacity-90">Prediksi Subscriber (12 bulan)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-3xl font-bold" id="growth-rate">-</div>
+                            <div class="text-sm opacity-90">Growth Rate per Bulan</div>
+                        </div>
+                    </div>
+
+                    <!-- Growth Chart -->
+                    <div class="card">
+                        <h3 class="text-xl font-bold mb-4">📈 Prediksi Pertumbuhan</h3>
+                        <canvas id="growthChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Factor Analysis -->
+                    <div class="card">
+                        <h3 class="text-xl font-bold mb-4">⚖️ Analisis Faktor</h3>
+                        <canvas id="factorChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="card">
+                        <h3 class="text-xl font-bold mb-4">💡 Rekomendasi</h3>
+                        <div id="recommendations-container">
+                            <!-- Recommendations will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let growthChart = null;
+        let factorChart = null;
+        
+        // Factor configurations
+        const factors = {
+            'current_subscribers': {label: 'Subscriber Saat Ini', min: 0, max: 100000, unit: 'orang'},
+            'avg_views_per_video': {label: 'Rata-rata Views per Video', min: 0, max: 50000, unit: 'views'},
+            'videos_per_week': {label: 'Video per Minggu', min: 0, max: 10, unit: 'video'},
+            'avg_video_length': {label: 'Durasi Video (menit)', min: 1, max: 60, unit: 'menit'},
+            'thumbnail_quality': {label: 'Kualitas Thumbnail (1-10)', min: 1, max: 10, unit: '/10'},
+            'title_optimization': {label: 'Optimasi Judul (1-10)', min: 1, max: 10, unit: '/10'},
+            'consistency': {label: 'Konsistensi Upload (1-10)', min: 1, max: 10, unit: '/10'},
+            'seasonality': {label: 'Faktor Musiman (1-10)', min: 1, max: 10, unit: '/10'},
+            'trending_topic': {label: 'Topik Trending (1-10)', min: 1, max: 10, unit: '/10'},
+            'engagement': {label: 'Engagement Rate (1-10)', min: 1, max: 10, unit: '/10'},
+            'seo_optimization': {label: 'SEO Optimization (1-10)', min: 1, max: 10, unit: '/10'},
+            'collaborations': {label: 'Kolaborasi per Bulan', min: 0, max: 10, unit: 'kolaborasi'},
+            'social_media_promo': {label: 'Promosi Media Sosial (1-10)', min: 1, max: 10, unit: '/10'}
+        };
+
+        // Default values
+        const defaultValues = {
+            'current_subscribers': 1000,
+            'avg_views_per_video': 500,
+            'videos_per_week': 2,
+            'avg_video_length': 10,
+            'thumbnail_quality': 7,
+            'title_optimization': 6,
+            'consistency': 8,
+            'seasonality': 5,
+            'trending_topic': 3,
+            'engagement': 5,
+            'seo_optimization': 6,
+            'collaborations': 2,
+            'social_media_promo': 4
+        };
+
+        // Initialize sliders
+        function initializeSliders() {
+            const container = document.getElementById('sliders-container');
+            
+            Object.keys(factors).forEach(key => {
+                const factor = factors[key];
+                const value = defaultValues[key];
+                
+                const sliderDiv = document.createElement('div');
+                sliderDiv.className = 'space-y-2';
+                sliderDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-medium">${factor.label}</label>
+                        <span class="text-sm font-bold" id="${key}-value">${value} ${factor.unit}</span>
+                    </div>
+                    <input type="range" 
+                           class="slider" 
+                           id="${key}" 
+                           min="${factor.min}" 
+                           max="${factor.max}" 
+                           value="${value}">
+                `;
+                
+                container.appendChild(sliderDiv);
+                
+                // Add event listener
+                const slider = document.getElementById(key);
+                const valueSpan = document.getElementById(key + '-value');
+                
+                slider.addEventListener('input', function() {
+                    valueSpan.textContent = this.value + ' ' + factor.unit;
+                });
+            });
+        }
+
+        // Get current input values
+        function getInputValues() {
+            const inputs = {};
+            Object.keys(factors).forEach(key => {
+                const slider = document.getElementById(key);
+                inputs[key] = parseFloat(slider.value);
+            });
+            return inputs;
+        }
+
+        // Make prediction
+        async function makePrediction() {
+            const inputs = getInputValues();
+            
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(inputs)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateResults(data);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error making prediction: ' + error.message);
+            }
+        }
+
+        // Update results
+        function updateResults(data) {
+            // Update stats
+            document.getElementById('final-subscribers').textContent = 
+                data.predictions[data.predictions.length - 1].subscribers.toLocaleString();
+            document.getElementById('growth-rate').textContent = 
+                data.growth_rate.toFixed(1) + '%';
+            
+            // Update growth chart
+            updateGrowthChart(data.predictions);
+            
+            // Update factor chart
+            updateFactorChart(data.factor_analysis);
+            
+            // Update recommendations
+            updateRecommendations(data.recommendations);
+        }
+
+        // Update growth chart
+        function updateGrowthChart(predictions) {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            
+            if (growthChart) {
+                growthChart.destroy();
+            }
+            
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: predictions.map(p => p.month_name),
+                    datasets: [{
+                        label: 'Subscribers',
+                        data: predictions.map(p => p.subscribers),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }, {
+                        label: 'Avg Views per Video',
+                        data: predictions.map(p => p.avg_views_per_video),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update factor chart
+        function updateFactorChart(factors) {
+            const ctx = document.getElementById('factorChart').getContext('2d');
+            
+            if (factorChart) {
+                factorChart.destroy();
+            }
+            
+            factorChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: factors.map(f => f.factor),
+                    datasets: [{
+                        label: 'Score',
+                        data: factors.map(f => f.score),
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update recommendations
+        function updateRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-container');
+            container.innerHTML = '';
+            
+            recommendations.forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'recommendation-card';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold">${rec.category}</span>
+                        <span class="text-xs px-2 py-1 bg-white bg-opacity-20 rounded">${rec.priority}</span>
+                    </div>
+                    <p class="text-sm">${rec.recommendation}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSliders();
+            
+            // Add event listener to predict button
+            document.getElementById('predict-btn').addEventListener('click', makePrediction);
+            
+            // Make initial prediction
+            makePrediction();
+        });
+    </script>
+</body>
+</html>

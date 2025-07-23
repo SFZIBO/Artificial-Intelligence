@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Sentimen Sosmed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Analisis Sentimen Komentar Sosial Media</h1>
+        <p>Proyek UTS Kecerdasan Buatan</p>
+    </header>
+
+    <main>
+        <section class="upload-section">
+            <h2>Upload Komentar</h2>
+            <form action="/predict" method="POST">
+                <textarea name="user_input" placeholder="Masukkan komentar untuk diklasifikasikan..."></textarea><br>
+                <button type="submit">Analisis Sentimen</button>
+            </form>
+        
+            {% if sentiment %}
+            <div class="hasil-sentimen {{ sentiment }}">
+                <p>Hasil Sentimen: <strong>{{ sentiment }}</strong></p>
+            </div>
+            {% endif %}
+        </section>
+        
+
+        <section class="result-section">
+            <h2>Hasil Klasifikasi</h2>
+            {% if result %}
+            <div class="result-box">
+                <p><strong>Komentar:</strong> {{ input_text }}</p>
+                <p><strong>Prediksi Sentimen:</strong> {{ result }}</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="visual-section">
+            <h2>Visualisasi Data</h2>
+            <div class="chart-container">
+                <img src="{{ url_for('static', filename='images/distribusi_sentimen.png') }}" alt="Distribusi Sentimen">
+                <img src="{{ url_for('static', filename='images/tren_komentar.png') }}" alt="Tren Komentar">
+            </div>
+        </section>
+
+        <section class="wordcloud-section">
+            <h2>Wordcloud</h2>
+            <div class="wordcloud-container">
+                <h5>Positif</h5>
+                <img src="{{ url_for('static', filename='images/wordcloud_positif.png') }}" alt="Wordcloud Positif">
+                <h5>Negatif</h5>
+                <img src="{{ url_for('static', filename='images/wordcloud_negatif.png') }}" alt="Wordcloud Negatif">
+                <h5>Netral</h5>
+                <img src="{{ url_for('static', filename='images/wordcloud_netral.png') }}" alt="Wordcloud Netral">
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Master AI Sentiment Project</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
+

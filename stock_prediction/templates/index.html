@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Saham TLKM</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Prediksi Harga Saham TLKM</h1>
+        <form action="/predict" method="POST">
+            <div class="form-group">
+                <label for="open">Harga Pembukaan (Open):</label>
+                <input type="text" id="open" name="open" placeholder="Contoh: 2860" required>
+            </div>
+            <div class="form-group">
+                <label for="high">Harga Tertinggi (High):</label>
+                <input type="text" id="high" name="high" placeholder="Contoh: 2870" required>
+            </div>
+            <div class="form-group">
+                <label for="low">Harga Terendah (Low):</label>
+                <input type="text" id="low" name="low" placeholder="Contoh: 2800" required>
+            </div>
+            <div class="form-group">
+                <label for="volume">Volume Perdagangan:</label>
+                <input type="text" id="volume" name="volume" placeholder="Contoh: 531309500" required>
+            </div>
+            <div class="form-group">
+                <label for="7d_avg">Rata-rata 7 Hari:</label>
+                <input type="text" id="7d_avg" name="7d_avg" placeholder="Contoh: 2820" required>
+            </div>
+            <button type="submit" class="btn-predict">Prediksi</button>
+        </form>
+        
+        {% if prediction %}
+            <div class="result">
+                <h3>{{ prediction }}</h3>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
