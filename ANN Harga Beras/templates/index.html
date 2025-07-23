@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Prediksi Harga GKP Petani</title>
+
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom style ringkas -->
+  <style>
+    body{background:#f8fafc;font-family:system-ui;}
+    .card{border:0;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,.08);}
+    .btn-primary{border-radius:.5rem;}
+    footer{font-size:.9rem;color:#6c757d;}
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card p-4">
+          <h3 class="text-center mb-4">Prediksi Harga<br>GKP Tingkat&nbsp;Petani&nbsp;(Rp/Kg)</h3>
+
+          <!-- Form -->
+          <form method="POST" class="row g-3">
+            <div class="col-6">
+              <label class="form-label">Tahun</label>
+              <input type="number" class="form-control" name="tahun" placeholder="mis. 2025" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Bulan&nbsp;(0‑11)</label>
+              <input type="number" class="form-control" name="bulan" min="0" max="11" placeholder="0=Jan, 11=Des" required>
+            </div>
+            <div class="col-12 d-grid">
+              <button class="btn btn-primary">Prediksi</button>
+            </div>
+          </form>
+
+          <!-- Hasil -->
+          {% if prediction %}
+            <div class="alert alert-success mt-4 text-center">
+              Perkiraan harga: <br><strong>Rp {{ prediction }}</strong> per&nbsp;Kg
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-center mt-auto pb-3">© 2025 • ANN Pangan • Flask Demo</footer>
+
+  <!-- Bootstrap JS (optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
